@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#87CEEB">
   <title>Samantha's Bee Adventure 🐝</title>
-  
-  <link rel="manifest" href="manifest.json">
-  
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { overflow: hidden; background: linear-gradient(to bottom, #87CEEB 0%, #98D8C8 100%); font-family: Arial, sans-serif; touch-action: none; }
@@ -145,8 +142,8 @@
 
     function spawnFlowers() {
       flowers.length = 0;
-      // FIX: The limit has been removed, allowing 11 flowers for level 13.
-      const flowerCount = 5 + Math.floor((level - 1) / 2); // Correctly computes the required flower count
+      // FIX: Changed flowerCount calculation to remove the Math.min(..., 10) limit
+      const flowerCount = 5 + Math.floor((level - 1) / 2); // This will correctly be 11 for level 13
       const margin = 80;
       const minDistance = 70;
       let placed = 0;
@@ -380,16 +377,6 @@
       updateParticles();
       checkCollision();
       requestAnimationFrame(gameLoop);
-    }
-    
-    // PWA: Register the Service Worker
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        // Ensure the service-worker.js file is in the root directory of your GitHub Pages site.
-        navigator.serviceWorker.register('./service-worker.js') 
-          .then(reg => console.log('Service Worker registered! Scope:', reg.scope))
-          .catch(err => console.log('Service Worker registration failed:', err));
-      });
     }
 
     window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
