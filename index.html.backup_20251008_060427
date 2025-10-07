@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#87CEEB">
+  <title>Samantha's Bee Adventure 🐝</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { overflow: hidden; background: linear-gradient(to bottom, #87CEEB 0%, #98D8C8 100%); font-family: Arial, sans-serif; touch-action: none; }
+    #gameContainer { position: relative; width: 100vw; height: 100vh; }
+    canvas { display: block; position: absolute; top: 0; left: 0; }
+    #header { position: absolute; top: 10px; width: 100%; text-align: center; z-index: 10; pointer-events: none; }
+    h1 { font-size: clamp(20px, 5vw, 32px); color: #FFD700; text-shadow: 3px 3px 0 #FF6347, -1px -1px 0 #fff; margin-bottom: 8px; animation: bounce 2s infinite; font-weight: bold; }
+    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+    #scoreBoard { background: rgba(255, 255, 255, 0.95); padding: 12px 24px; border-radius: 20px; display: inline-block; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+    #score { font-size: clamp(18px, 4.5vw, 26px); color: #FF6347; font-weight: bold; }
+    #funFactModal, #quizModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: none; align-items: center; justify-content: center; z-index: 100; }
+    #funFactModal.show, #quizModal.show { display: flex; }
+    #funFactContent, #quizContent { background: white; padding: 30px; border-radius: 25px; max-width: 85%; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5); animation: popIn 0.3s ease-out; }
+    @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    #funFactContent h2 { color: #FF6347; font-size: clamp(22px, 5vw, 32px); margin-bottom: 20px; font-weight: bold; }
+    #quizContent h2 { color: #9370DB; font-size: clamp(22px, 5vw, 32px); margin-bottom: 20px; font-weight: bold; }
+    #funFactText, #quizQuestion { font-size: clamp(20px, 4.5vw, 28px); line-height: 1.6; color: #333; margin-bottom: 25px; font-weight: 500; }
+    #gotItBtn, #continueBtn, #startBtn { padding: 15px 45px; font-size: clamp(20px, 4.5vw, 26px); border: none; border-radius: 15px; color: white; font-weight: bold; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3); font-family: Arial, sans-serif; }
+    #gotItBtn { background: linear-gradient(135deg, #4CAF50, #45a049); }
+    #continueBtn, #startBtn { background: linear-gradient(135deg, #FFD700, #FFA500); margin-top: 15px; display: none; }
+    #startBtn { display: inline-block; margin-top: 20px; }
+    #gotItBtn:active, #continueBtn:active, #startBtn:active { transform: scale(0.95); }
+    .quiz-option { display: block; width: 100%; padding: 18px; margin: 12px 0; font-size: clamp(18px, 4vw, 24px); background: #f0f0f0; border: 3px solid #ddd; border-radius: 15px; cursor: pointer; font-weight: 500; transition: all 0.2s; }
+    .quiz-option:active { transform: scale(0.98); }
+    .quiz-option.correct { background: #4CAF50; color: white; border-color: #45a049; }
+    .quiz-option.wrong { background: #f44336; color: white; border-color: #da190b; }
+    #quizFeedback { font-size: clamp(20px, 4.5vw, 28px); font-weight: bold; margin-top: 20px; min-height: 40px; }
+    #progressBar { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); width: 80%; max-width: 400px; background: rgba(255, 255, 255, 0.9); padding: 10px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 10; }
+    #progressBar p { font-size: clamp(14px, 3.5vw, 18px); color: #333; margin-bottom: 8px; font-weight: bold; text-align: center; }
+    #progressBarFill { width: 100%; height: 20px; background: #e0e0e0; border-radius: 10px; overflow: hidden; }
+    #progressBarInner { height: 100%; background: linear-gradient(90deg, #4CAF50, #8BC34A); width: 0%; transition: width 0.5s ease; border-radius: 10px; }
+    #soundToggle { position: absolute; top: 80px; right: 15px; background: rgba(255, 255, 255, 0.9); border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 24px; cursor: pointer; box-shadow: 0 3px 10px rgba(0,0,0,0.2); z-index: 10; }
+    #soundToggle:active { transform: scale(0.9); }
+    #restartBtn { position: absolute; top: 80px; left: 15px; background: rgba(255, 255, 255, 0.9); border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 24px; cursor: pointer; box-shadow: 0 3px 10px rgba(0,0,0,0.2); z-index: 10; }
+    #restartBtn:active { transform: scale(0.9); }
+    .combo { position: absolute; font-size: clamp(24px, 6vw, 36px); font-weight: bold; color: #FFD700; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); pointer-events: none; animation: comboFloat 1s ease-out forwards; z-index: 15; }
+    @keyframes comboFloat { 0% { opacity: 1; transform: translateY(0) scale(0.5); } 50% { transform: translateY(-30px) scale(1.2); } 100% { opacity: 0; transform: translateY(-60px) scale(1); } }
+    #levelComplete { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: linear-gradient(135deg, #FFD700, #FFA500); padding: 30px 50px; border-radius: 25px; font-size: clamp(24px, 6vw, 40px); color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); box-shadow: 0 10px 30px rgba(0,0,0,0.4); z-index: 20; transition: transform 0.5s; font-weight: bold; }
+    #levelComplete.show { transform: translate(-50%, -50%) scale(1); animation: celebrate 0.6s ease-in-out; }
+    @keyframes celebrate { 0%, 100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); } 25% { transform: translate(-50%, -50%) scale(1.1) rotate(-5deg); } 75% { transform: translate(-50%, -50%) scale(1.1) rotate(5deg); } }
+    #instructions { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(255, 255, 255, 0.98); padding: 30px; border-radius: 20px; text-align: center; z-index: 30; box-shadow: 0 10px 40px rgba(0,0,0,0.3); max-width: 90%; animation: fadeIn 0.5s ease-in; }
+    @keyframes fadeIn { from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+    #instructions h2 { color: #FF6347; margin-bottom: 15px; font-size: clamp(22px, 5.5vw, 32px); font-weight: bold; }
+    #instructions p { font-size: clamp(18px, 4.5vw, 24px); margin: 12px 0; color: #333; font-weight: 500; }
+  </style>
+</head>
+<body>
+  <div id="gameContainer">
+    <canvas id="gameCanvas"></canvas>
+    <div id="header">
+      <h1>🐝 Samantha's Bee Adventure 🐝</h1>
+      <div id="scoreBoard"><div id="score">Level 1 | Flowers: 0/5</div></div>
+    </div>
+    <div id="levelComplete">Level Complete! 🎉</div>
+    <div id="instructions">
+      <h2>🌸 How to Play 🌸</h2>
+      <p>👆 Tap the screen to move your bee</p>
+      <p>🌼 Collect flowers to make honey</p>
+      <p>🧠 Learn fun bee facts!</p>
+      <p>📚 Answer quiz questions!</p>
+      <button id="startBtn">Start Adventure! 🚀</button>
+    </div>
+    <div id="funFactModal">
+      <div id="funFactContent">
+        <h2>🐝 Bee Fact! 🐝</h2>
+        <div id="funFactText"></div>
+        <button id="gotItBtn">✓ Got It!</button>
+      </div>
+    </div>
+    <div id="quizModal">
+      <div id="quizContent">
+        <h2>🧠 Quiz Time! 🧠</h2>
+        <div id="quizQuestion"></div>
+        <div id="quizOptions"></div>
+        <div id="quizFeedback"></div>
+        <button id="continueBtn">Continue! →</button>
+      </div>
+    </div>
+    <div id="progressBar">
+      <p>🌟 Facts Learned: <span id="factsCount">0</span>/10</p>
+      <div id="progressBarFill"><div id="progressBarInner"></div></div>
+    </div>
+    <button id="soundToggle">🔊</button>
+    <button id="restartBtn">🔄</button>
+  </div>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const levelPopup = document.getElementById('levelComplete');
+    const funFactModal = document.getElementById('funFactModal');
+    const funFactText = document.getElementById('funFactText');
+    const gotItBtn = document.getElementById('gotItBtn');
+    const quizModal = document.getElementById('quizModal');
+    const quizQuestion = document.getElementById('quizQuestion');
+    const quizOptions = document.getElementById('quizOptions');
+    const quizFeedback = document.getElementById('quizFeedback');
+    const continueBtn = document.getElementById('continueBtn');
+    const instructions = document.getElementById('instructions');
+    const startBtn = document.getElementById('startBtn');
+    const factsCount = document.getElementById('factsCount');
+    const progressBarInner = document.getElementById('progressBarInner');
+    const soundToggle = document.getElementById('soundToggle');
+    const restartBtn = document.getElementById('restartBtn');
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const beeFacts = [
+      { fact: "🐝 Bees dance to tell other bees where flowers are!", quiz: { question: "How do bees tell each other where flowers are?", options: ["They dance", "They sing", "They draw pictures"], correct: 0 } },
+      { fact: "🍯 One bee makes only 1/12 teaspoon of honey in her whole life!", quiz: { question: "How much honey does one bee make in her life?", options: ["A big jar", "Just a tiny bit", "A swimming pool full"], correct: 1 } },
+      { fact: "🌸 Bees visit up to 5,000 flowers in one day!", quiz: { question: "How many flowers can a bee visit in one day?", options: ["Just 10", "About 100", "Thousands!"], correct: 2 } },
+      { fact: "👁️ Bees have 5 eyes - 2 big ones and 3 small ones!", quiz: { question: "How many eyes does a bee have?", options: ["2 eyes", "5 eyes", "10 eyes"], correct: 1 } },
+      { fact: "🎨 Bees can see many colors, but they cannot see red!", quiz: { question: "What color can't bees see?", options: ["Red", "Yellow", "Blue"], correct: 0 } },
+      { fact: "🏠 A beehive can have up to 50,000 bees living together!", quiz: { question: "About how many bees live in one hive?", options: ["Just 10 bees", "Thousands of bees", "One million bees"], correct: 1 } },
+      { fact: "✈️ Bees can fly at 15 miles per hour - that's as fast as a bicycle!", quiz: { question: "How fast can bees fly?", options: ["Very slow", "As fast as a car", "As fast as a bicycle"], correct: 2 } },
+      { fact: "💪 Bees carry pollen in special baskets on their back legs!", quiz: { question: "Where do bees carry pollen?", options: ["In their mouth", "On their legs", "In their wings"], correct: 1 } },
+      { fact: "🌍 Bees help flowers grow all around the world by spreading pollen!", quiz: { question: "How do bees help flowers?", options: ["They water them", "They spread pollen", "They sing to them"], correct: 1 } },
+      { fact: "👑 The Queen Bee is the mother of all bees in the hive!", quiz: { question: "Who is the Queen Bee?", options: ["The biggest bee", "The mother of all bees", "The fastest bee"], correct: 1 } }
+    ];
+
+    let level = 1, targetScore = 5, gameStarted = false, gamePaused = false, flowersCollectedThisLevel = 0;
+    let factIndex = 0, learnedFacts = [], beeAngle = 0, combo = 0, comboTimer = null, soundEnabled = true;
+    const flowers = [], clouds = [], particles = [];
+    const bee = { x: canvas.width / 2, y: canvas.height / 2, size: 60, targetX: canvas.width / 2, targetY: canvas.height / 2 };
+    const flowerColors = [['#FF1493', '#FFB6C1'], ['#FF6347', '#FFA07A'], ['#9370DB', '#DDA0DD'], ['#FFD700', '#FFFF00'], ['#FF69B4', '#FFC0CB']];
+
+    for (let i = 0; i < 5; i++) clouds.push({ x: Math.random() * canvas.width, y: Math.random() * (canvas.height * 0.3), size: 60 + Math.random() * 40, speed: 0.2 + Math.random() * 0.3 });
+
+    soundToggle.addEventListener('click', () => { soundEnabled = !soundEnabled; soundToggle.textContent = soundEnabled ? '🔊' : '🔇'; });
+    restartBtn.addEventListener('click', restartGame);
+    continueBtn.addEventListener('click', () => { quizModal.classList.remove('show'); continueBtn.style.display = 'none'; gamePaused = false; });
+    startBtn.addEventListener('click', () => { instructions.style.display = 'none'; gameStarted = true; spawnFlowers(); showFunFact(); gameLoop(); });
+    gotItBtn.addEventListener('click', () => { funFactModal.classList.remove('show'); gamePaused = false; });
+
+    function spawnFlowers() {
+      flowers.length = 0;
+      const flowerCount = Math.min(5 + Math.floor((level - 1) / 2), 10);
+      const margin = 80;
+      const minDistance = 70;
+      let placed = 0;
+      let attempts = 0;
+      const maxAttempts = 500;
+      
+      while (placed < flowerCount && attempts < maxAttempts) {
+        attempts++;
+        const newFlower = { 
+          x: Math.random() * (canvas.width - margin * 2) + margin, 
+          y: Math.random() * (canvas.height - margin * 2 - 100) + margin + 80, 
+          size: 35 + Math.random() * 15, 
+          color: flowerColors[Math.floor(Math.random() * flowerColors.length)], 
+          rotation: Math.random() * Math.PI * 2, 
+          wobble: Math.random() * Math.PI * 2 
+        };
+        
+        let tooClose = false;
+        for (let existing of flowers) {
+          const dx = newFlower.x - existing.x;
+          const dy = newFlower.y - existing.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < minDistance) {
+            tooClose = true;
+            break;
+          }
+        }
+        
+        if (!tooClose) {
+          flowers.push(newFlower);
+          placed++;
+        }
+      }
+      
+      // If we couldn't place all flowers, try again with smaller spacing
+      if (placed < flowerCount) {
+        const remaining = flowerCount - placed;
+        for (let i = 0; i < remaining; i++) {
+          flowers.push({ 
+            x: Math.random() * (canvas.width - margin * 2) + margin, 
+            y: Math.random() * (canvas.height - margin * 2 - 100) + margin + 80, 
+            size: 35 + Math.random() * 15, 
+            color: flowerColors[Math.floor(Math.random() * flowerColors.length)], 
+            rotation: Math.random() * Math.PI * 2, 
+            wobble: Math.random() * Math.PI * 2 
+          });
+        }
+      }
+    }
+
+    function showFunFact() {
+      const currentFact = beeFacts[factIndex % beeFacts.length];
+      funFactText.textContent = currentFact.fact;
+      funFactModal.classList.add('show');
+      gamePaused = true;
+      if (!learnedFacts.includes(factIndex % beeFacts.length)) { learnedFacts.push(factIndex % beeFacts.length); updateProgress(); }
+      factIndex++;
+    }
+
+    function updateProgress() {
+      factsCount.textContent = learnedFacts.length;
+      progressBarInner.style.width = (learnedFacts.length / beeFacts.length) * 100 + '%';
+      if (learnedFacts.length === beeFacts.length) setTimeout(() => alert('🎉 Amazing! You learned ALL the bee facts! You\'re a bee expert now! 🐝👑'), 1000);
+    }
+
+    function playSound() {
+      if (!soundEnabled) return;
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.frequency.value = 440 + (combo * 50); osc.type = 'sine';
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+      osc.start(audioCtx.currentTime); osc.stop(audioCtx.currentTime + 0.2);
+    }
+
+    function showCombo(x, y) {
+      if (combo < 2) return;
+      const el = document.createElement('div');
+      el.className = 'combo'; el.textContent = `${combo}x COMBO! 🔥`;
+      el.style.left = x + 'px'; el.style.top = y + 'px';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 1000);
+    }
+
+    function showQuiz() {
+      if (learnedFacts.length === 0) return;
+      const quizData = beeFacts[learnedFacts[Math.floor(Math.random() * learnedFacts.length)]].quiz;
+      quizQuestion.textContent = quizData.question;
+      quizFeedback.textContent = ''; quizOptions.innerHTML = '';
+      quizData.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'quiz-option'; btn.textContent = opt;
+        btn.onclick = () => checkAnswer(idx, quizData.correct, btn);
+        quizOptions.appendChild(btn);
+      });
+      quizModal.classList.add('show'); gamePaused = true;
+    }
+
+    function checkAnswer(sel, cor, btn) {
+      const all = document.querySelectorAll('.quiz-option');
+      all.forEach(b => b.style.pointerEvents = 'none');
+      if (sel === cor) { btn.classList.add('correct'); quizFeedback.textContent = '🎉 Correct! Great job!'; quizFeedback.style.color = '#4CAF50'; }
+      else { btn.classList.add('wrong'); all[cor].classList.add('correct'); quizFeedback.textContent = '💪 Not quite, but keep learning!'; quizFeedback.style.color = '#f44336'; }
+      continueBtn.style.display = 'block';
+    }
+
+    function drawCloud(x, y, s) {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.beginPath();
+      ctx.arc(x, y, s * 0.5, 0, Math.PI * 2);
+      ctx.arc(x + s * 0.4, y, s * 0.4, 0, Math.PI * 2);
+      ctx.arc(x - s * 0.4, y, s * 0.4, 0, Math.PI * 2);
+      ctx.arc(x, y - s * 0.3, s * 0.4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawFlower(f) {
+      ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(f.rotation + Math.sin(f.wobble) * 0.1);
+      ctx.strokeStyle = '#228B22'; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(0, 10); ctx.lineTo(0, f.size * 0.8); ctx.stroke();
+      for (let i = 0; i < 6; i++) {
+        ctx.save(); ctx.rotate((Math.PI * 2 / 6) * i);
+        ctx.fillStyle = f.color[0];
+        ctx.beginPath(); ctx.ellipse(0, -f.size * 0.3, f.size * 0.25, f.size * 0.4, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      }
+      ctx.fillStyle = f.color[1];
+      ctx.beginPath(); ctx.arc(0, 0, f.size * 0.2, 0, Math.PI * 2); ctx.fill();
+      ctx.restore(); f.wobble += 0.02;
+    }
+
+    function drawBee() {
+      const flap = Math.sin(Date.now() * 0.02) * 0.2;
+      ctx.save(); ctx.translate(bee.x, bee.y); ctx.rotate(beeAngle);
+      ctx.fillStyle = 'rgba(200, 230, 255, 0.7)';
+      ctx.beginPath(); ctx.ellipse(-bee.size * 0.2, -bee.size * 0.3 + flap * 10, bee.size * 0.4, bee.size * 0.25, -0.3 - flap, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(-bee.size * 0.2, bee.size * 0.3 - flap * 10, bee.size * 0.4, bee.size * 0.25, 0.3 + flap, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#FFD700';
+      ctx.beginPath(); ctx.ellipse(0, 0, bee.size * 0.5, bee.size * 0.35, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#000'; ctx.lineWidth = 3;
+      for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.moveTo(bee.size * 0.2 * i, -bee.size * 0.35); ctx.lineTo(bee.size * 0.2 * i, bee.size * 0.35); ctx.stroke(); }
+      ctx.fillStyle = '#000';
+      ctx.beginPath(); ctx.arc(bee.size * 0.35, -bee.size * 0.1, bee.size * 0.08, 0, Math.PI * 2); ctx.arc(bee.size * 0.35, bee.size * 0.1, bee.size * 0.08, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(bee.size * 0.45, 0, bee.size * 0.15, 0.2, Math.PI - 0.2); ctx.stroke();
+      ctx.restore();
+    }
+
+    function createParticles(x, y) {
+      for (let i = 0; i < 10; i++) particles.push({ x, y, vx: (Math.random() - 0.5) * 5, vy: (Math.random() - 0.5) * 5, life: 1, size: 5 + Math.random() * 5, color: `hsl(${Math.random() * 60 + 30}, 100%, 50%)` });
+    }
+
+    function updateParticles() {
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx; p.y += p.vy; p.life -= 0.02;
+        ctx.globalAlpha = p.life; ctx.fillStyle = p.color;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+        ctx.globalAlpha = 1;
+        if (p.life <= 0) particles.splice(i, 1);
+      }
+    }
+
+    function checkCollision() {
+      if (gamePaused) return;
+      for (let i = flowers.length - 1; i >= 0; i--) {
+        const f = flowers[i], dx = bee.x - f.x, dy = bee.y - f.y;
+        if (Math.sqrt(dx * dx + dy * dy) < (bee.size + f.size) / 2) {
+          flowers.splice(i, 1); flowersCollectedThisLevel++;
+          createParticles(f.x, f.y); playSound();
+          combo++; clearTimeout(comboTimer);
+          comboTimer = setTimeout(() => combo = 0, 2000);
+          showCombo(f.x, f.y);
+          scoreEl.textContent = `Level ${level} | Flowers: ${flowersCollectedThisLevel}/${targetScore}`;
+          if (flowersCollectedThisLevel >= targetScore) { combo = 0; setTimeout(nextLevel, 500); }
+        }
+      }
+    }
+
+    function nextLevel() {
+      levelPopup.textContent = `Level ${level} Complete! 🎉`;
+      levelPopup.classList.add('show'); gamePaused = true;
+      for (let i = 0; i < 30; i++) createParticles(Math.random() * canvas.width, Math.random() * canvas.height);
+      setTimeout(() => {
+        level++; flowersCollectedThisLevel = 0; targetScore = 5 + Math.floor((level - 1) / 2);
+        levelPopup.classList.remove('show');
+        if (level > 1 && (level - 1) % 3 === 0) setTimeout(showQuiz, 500);
+        else showFunFact();
+        spawnFlowers();
+        scoreEl.textContent = `Level ${level} | Flowers: ${flowersCollectedThisLevel}/${targetScore}`;
+      }, 2000);
+    }
+
+    function restartGame() {
+      level = 1; targetScore = 5; flowersCollectedThisLevel = 0; factIndex = 0;
+      combo = 0; learnedFacts = []; flowers.length = 0; particles.length = 0;
+      bee.x = canvas.width / 2; bee.y = canvas.height / 2;
+      bee.targetX = canvas.width / 2; bee.targetY = canvas.height / 2;
+      gamePaused = false; gameStarted = false;
+      funFactModal.classList.remove('show');
+      quizModal.classList.remove('show');
+      levelPopup.classList.remove('show');
+      instructions.style.display = 'block';
+      scoreEl.textContent = 'Level 1 | Flowers: 0/5';
+      factsCount.textContent = '0';
+      progressBarInner.style.width = '0%';
+    }
+
+    canvas.addEventListener('touchstart', handleTouch);
+    canvas.addEventListener('touchmove', handleTouch);
+    canvas.addEventListener('click', handleTouch);
+
+    function handleTouch(e) {
+      if (!gameStarted || gamePaused) return;
+      e.preventDefault();
+      const t = e.touches ? e.touches[0] : e;
+      bee.targetX = t.clientX; bee.targetY = t.clientY;
+    }
+
+    function gameLoop() {
+      if (!gameStarted) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      clouds.forEach(c => { c.x += c.speed; if (c.x > canvas.width + c.size) c.x = -c.size; drawCloud(c.x, c.y, c.size); });
+      if (!gamePaused) {
+        bee.x += (bee.targetX - bee.x) * 0.1; bee.y += (bee.targetY - bee.y) * 0.1;
+        beeAngle = Math.atan2(bee.targetY - bee.y, bee.targetX - bee.x);
+      }
+      flowers.forEach(drawFlower);
+      drawBee();
+      updateParticles();
+      checkCollision();
+      requestAnimationFrame(gameLoop);
+    }
+
+    window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
+  </script>
+</body>
+</html>

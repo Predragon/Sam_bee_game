@@ -1,0 +1,22 @@
+{
+  "name": "Samantha's Bee Adventure",
+  "short_name": "Bee Game",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#87CEEB",
+  "theme_color": "#87CEEB",
+  "orientation": "portrait",
+  "description": "Educational bee collection game for kids",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%2387CEEB' width='192' height='192'/%3E%3Cellipse cx='96' cy='96' rx='40' ry='28' fill='%23FFD700'/%3E%3Cpath d='M76 86h8v20h-8z M108 86h8v20h-8z' fill='%23000'/%3E%3Cellipse cx='76' cy='76' rx='16' ry='10' fill='rgba(200,230,255,0.7)'/%3E%3Cellipse cx='116' cy='76' rx='16' ry='10' fill='rgba(200,230,255,0.7)'/%3E%3Ctext x='96' y='170' font-size='48' text-anchor='middle' fill='%23FFD700'%3E🐝%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect fill='%2387CEEB' width='512' height='512'/%3E%3Cellipse cx='256' cy='256' rx='100' ry='70' fill='%23FFD700'/%3E%3Cpath d='M206 236h20v40h-20z M286 236h20v40h-20z' fill='%23000'/%3E%3Cellipse cx='206' cy='206' rx='40' ry='25' fill='rgba(200,230,255,0.7)'/%3E%3Cellipse cx='306' cy='206' rx='40' ry='25' fill='rgba(200,230,255,0.7)'/%3E%3Ctext x='256' y='450' font-size='120' text-anchor='middle' fill='%23FFD700'%3E🐝%3C/text%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
